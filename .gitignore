@@ -1,0 +1,25 @@
+# Sensitive config（key 只放 .env；config.yaml 是静态配置，随项目分发）
+.env
+
+# standalone 浏览器 profile（登录态）
+.browser-profile/
+.browser-logs/
+
+# Pipeline output (large, regeneratable)
+memory/*.json
+memory/*.md
+memory/*.bib
+memory/*.log
+memory/paper-abstracts/
+memory/output/
+memory/tier2_task.json
+memory/pipeline_issues.json
+memory/monitors/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db

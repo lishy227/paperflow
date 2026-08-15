@@ -1,0 +1,4 @@
+# paid-db-access standalone 依赖
+pyyaml>=6.0          # config.yaml 读取
+websocket-client>=1.6 # CDP WebSocket 通信（_search_one / _tier2 / _health_check）
+aiohttp>=3.9         # AI 重排/摘要的并发 API 调用（Stage 4 可选）

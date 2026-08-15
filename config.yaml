@@ -1,0 +1,67 @@
+databases:
+  acm:
+    base_url: https://dl.acm.org
+    enabled: true
+    extractor: extractors/acm.js
+    detail_extractor: extractors/acm_detail.js
+    name: ACM Digital Library
+    search_url: https://dl.acm.org/action/doSearch
+    download_pattern: /doi/pdf/
+  engineering_village:
+    base_url: https://www.engineeringvillage.com
+    enabled: true
+    extractor: extractors/engineering_village.js
+    name: Engineering Village (Compendex)
+    search_url: https://www.engineeringvillage.com/app/search/quick/?
+  ieee:
+    base_url: https://ieeexplore.ieee.org
+    enabled: true
+    extractor: extractors/ieee.js
+    login_url: https://ieeexplore.ieee.org/Xplore/home.jsp
+    name: IEEE Xplore
+    search_url: https://ieeexplore.ieee.org/search/searchresult.jsp
+  scopus:
+    base_url: https://www.scopus.com
+    enabled: true
+    extractor: extractors/scopus.js
+    name: Scopus
+    search_url: https://www.scopus.com/search/form.uri
+download:
+  dir: ''
+  free_sources:
+  - api: https://api.semanticscholar.org/graph/v1/paper/DOI:{doi}?fields=title,authors,openAccessPdf
+    enabled: true
+    name: Semantic Scholar
+    note: 通过 DOI 查询 OA PDF
+  - api: https://api.unpaywall.org/v2/{doi}?email=your@email.com
+    enabled: true
+    name: Unpaywall
+    note: 需要注册邮箱（免费），检查 best_oa_location.url_for_pdf
+  - api: https://api.openalex.org/works/doi:{doi}
+    enabled: true
+    name: OpenAlex
+    note: 检查 open_access.oa_url 字段
+  - enabled: true
+    name: Google Scholar / author preprint
+    note: web_search 标题 + filetype:pdf
+  paid_db_download_pages:
+    engineering_village:
+      download_url_pattern: https://www.engineeringvillage.com/app/doc/?docid={docId}
+      name: EI Village
+      note: 详情页查看 Full Text 链接 → 跳转到原始出版商下载
+    ieee:
+      download_url_pattern: https://ieeexplore.ieee.org/document/{arnumber}
+      name: IEEE Xplore
+      note: 在详情页点击 PDF 下载链接（需机构订阅）
+    scopus:
+      download_url_pattern: https://www.scopus.com/record/display.uri?eid={eid}&origin=resultslist
+      name: Scopus
+      note: Scopus 本身不托管全文，查看 'View at Publisher' 链接跳转
+monitoring:
+  enabled: false
+setup:
+  chrome_available: true
+  edge_available: true
+  last_check: '2026-07-03 00:29:17'
+  pycryptodome_installed: true
+  pywin32_installed: true

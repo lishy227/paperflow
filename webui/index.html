@@ -1,0 +1,546 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>paid-db-access 控制台</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #fff; --border: #e3e6ea;
+    --text: #1f2937; --muted: #6b7280;
+    --green: #16a34a; --yellow: #d97706; --red: #dc2626; --gray: #9ca3af; --blue: #2563eb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); }
+  .container { max-width: 1000px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  /* 头部 */
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+  .header h1 { font-size: 22px; }
+  .header .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .btn { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 14px; color: var(--text); }
+  .btn:hover { border-color: var(--blue); color: var(--blue); }
+  .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn.danger { background: var(--red); border-color: var(--red); color: #fff; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.sm { padding: 4px 10px; font-size: 12px; border-radius: 6px; }
+
+  /* 任务卡片 */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-bottom: 12px; cursor: pointer; transition: box-shadow .15s; }
+  .card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+  .card .row1 { display: flex; align-items: center; gap: 10px; }
+  .card .title { font-size: 16px; font-weight: 600; }
+  .card .run-id { font-family: Consolas, monospace; color: var(--muted); font-size: 12px; }
+  .card .row2 { display: flex; align-items: center; gap: 14px; margin-top: 6px; color: var(--muted); font-size: 13px; }
+
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; color: #fff; }
+  .badge.done { background: var(--green); }
+  .badge.running { background: var(--yellow); }
+  .badge.pending { background: var(--gray); }
+  .badge.failed { background: var(--red); }
+
+  /* 详情 */
+  .back { margin-bottom: 14px; }
+  .detail-header { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .detail-header h2 { font-size: 18px; }
+  .detail-header .meta { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.8; }
+  .detail-header .meta b { color: var(--text); }
+
+  /* 步骤条 */
+  .steps { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .step { flex: 1; min-width: 130px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; position: relative; }
+  .step .dot { width: 14px; height: 14px; border-radius: 50%; margin: 0 auto 6px; background: var(--gray); }
+  .step.done .dot { background: var(--green); }
+  .step.active .dot { background: var(--yellow); animation: pulse 1s infinite; }
+  .step.failed .dot { background: var(--red); }
+  @keyframes pulse { 50% { opacity: .4; } }
+  .step .name { font-size: 13px; font-weight: 600; }
+  .step .dir { font-size: 11px; color: var(--muted); font-family: Consolas, monospace; }
+  .step .actions { margin-top: 8px; display: flex; gap: 6px; justify-content: center; }
+
+  /* 控制区 */
+  .controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .panel h3 { font-size: 15px; margin-bottom: 10px; }
+  .panel pre { background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 8px; font-size: 12px; overflow-x: auto; max-height: 320px; overflow-y: auto; font-family: Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
+  .muted { color: var(--muted); font-size: 13px; }
+
+  /* 表单 */
+  .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; z-index: 10; }
+  .modal-mask.show { display: flex; }
+  .modal { background: var(--card); border-radius: 14px; padding: 24px; width: 560px; max-width: 94vw; max-height: 88vh; overflow-y: auto; }
+  .modal h3 { margin-bottom: 16px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .field input[type=text], .field input[type=number] { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+  .field .hint { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .db-checks { display: flex; gap: 14px; flex-wrap: wrap; }
+  .db-checks label { font-weight: 400; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .db-group { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; padding: 6px 10px; border-radius: 8px; background: #f4f6f8; }
+  .db-group + .db-group { margin-top: 6px; }
+  .db-group-title { font-size: 12px; color: #888; margin-right: 4px; }
+  .modal .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+
+  .flash { position: fixed; top: 16px; right: 16px; padding: 10px 16px; border-radius: 8px; color: #fff; font-size: 14px; z-index: 99; opacity: 0; transition: opacity .3s; }
+  .flash.ok { background: var(--green); }
+  .flash.err { background: var(--red); }
+  .flash.show { opacity: 1; }
+  .hidden { display: none; }
+  #health-result pre { white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="flash" id="flash"></div>
+<div class="container">
+  <!-- 列表视图 -->
+  <div id="view-list">
+    <div class="header">
+      <div>
+        <h1>📚 paid-db-access 控制台</h1>
+        <div class="sub">多库文献检索管道 · 分步执行 / 回退</div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn" onclick="loadTasks()">刷新</button>
+        <button class="btn" onclick="openCreate()">+ 新建任务</button>
+        <button class="btn" onclick="runHealth()">健康检查</button>
+      </div>
+    </div>
+    <div id="health-result" class="panel hidden"><h3>健康检查</h3><pre id="health-pre"></pre></div>
+    <div id="task-list"><div class="muted">加载中...</div></div>
+  </div>
+
+  <!-- 详情视图 -->
+  <div id="view-detail" class="hidden">
+    <div class="back"><button class="btn sm" onclick="showList()">← 返回列表</button></div>
+    <div class="detail-header" id="detail-header"></div>
+    <div class="steps" id="steps"></div>
+    <div class="controls">
+      <button class="btn primary" id="btn-run-all" onclick="runTask('health','output',false)">▶ 跑全部管道</button>
+      <button class="btn danger" id="btn-stop" onclick="stopTask()" disabled>■ 停止</button>
+      <button class="btn danger" onclick="deleteCurrent()">🗑 删除任务</button>
+      <span class="muted" id="run-status" style="align-self:center;"></span>
+    </div>
+    <div class="panel" id="progress-panel" style="display:none;">
+      <h3>运行进度</h3>
+      <pre id="progress-log">等待输出...</pre>
+    </div>
+    <div class="panel">
+      <h3>输出配置</h3>
+      <div>论文总数: <b id="total-papers">-</b> 篇（评分排序后全量）</div>
+      <div style="margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        输出 <input type="number" id="cfg-top" value="15" min="1" max="500" style="width:80px;"> 篇
+        <button class="btn sm" onclick="saveTop()">保存</button>
+        <span class="muted">跑管道时按此数量生成精选报告</span>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>浏览器登录</h3>
+      <div style="margin: 10px 0; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn sm" onclick="openBrowserLogin()">🌐 打开浏览器登录</button>
+        <button class="btn sm" onclick="checkLogin()">🩺 检查登录态</button>
+      </div>
+      <pre id="login-result" class="muted">（点「打开浏览器登录」启动浏览器并打开本任务的数据库主页，登录完成后点「检查登录态」验证）</pre>
+    </div>
+    <div class="panel">
+      <h3>结果</h3>
+      <div id="result-meta" class="muted"></div>
+      <div style="margin: 10px 0;"><button class="btn sm" id="btn-bib" onclick="downloadBib()">下载 results.bib</button> <button class="btn sm" onclick="downloadMd()">下载 final_results.md</button></div>
+      <pre id="result-content">（还没有结果，跑完管道后这里会显示 final_results.md）</pre>
+    </div>
+  </div>
+</div>
+
+<!-- 新建任务模态框 -->
+<div class="modal-mask" id="create-modal">
+  <div class="modal">
+    <h3>新建研究任务</h3>
+    <div class="field"><label>任务标题 *</label><input type="text" id="f-title" placeholder="如: MCU 固件安全综述"><div class="hint">用于展示</div></div>
+    <div class="field"><label>核心关键词（逗号分隔）*</label><input type="text" id="f-concepts" placeholder="microcontroller, embedded security"></div>
+    <div class="field"><label>同义词（可选）</label><input type="text" id="f-synonyms" placeholder="microcontroller=MCU,单片机 | embedded=firmware"><div class="hint">格式: 词=同义1,同义2 | 多组用 | 分隔</div></div>
+    <div class="field"><label>子方向（可选，逗号分隔）</label><input type="text" id="f-subs" placeholder="RTOS, bare-metal"></div>
+    <div class="field"><label>排除词（可选，逗号分隔）</label><input type="text" id="f-excl" placeholder="FPGA-only, PLC"></div>
+    <div class="field"><label>年份范围</label><input type="text" id="f-year" value="2020-2026"></div>
+    <div class="field"><label>数据库</label>
+      <div class="db-checks" id="f-dbs">
+        <div class="db-group"><span class="db-group-title">免费源（无需账号，纯 API）</span>
+          <label><input type="checkbox" value="openalex" checked> OpenAlex</label>
+        </div>
+        <div class="db-group"><span class="db-group-title">付费库（需机构登录态）</span>
+          <label><input type="checkbox" value="scopus"> Scopus</label>
+          <label><input type="checkbox" value="ieee"> IEEE</label>
+          <label><input type="checkbox" value="acm"> ACM</label>
+          <label><input type="checkbox" value="engineering_village"> EV</label>
+        </div>
+      </div>
+      <div class="hint">无账号也能跑：默认免费源即可完整体验管道</div>
+    </div>
+    <div class="field"><label>每库目标篇数</label><input type="number" id="f-target" value="40" min="1"></div>
+    <div class="field"><label>最终输出篇数（评分排序后取前 N）</label><input type="number" id="f-top" value="15" min="1"></div>
+    <div class="actions">
+      <button class="btn" onclick="closeCreate()">取消</button>
+      <button class="btn primary" onclick="createTask()">创建</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 全局状态 ──
+let currentRunId = null;
+let pollTimer = null;
+let creating = false;
+
+// ── 工具 ──
+async function api(url, opts) {
+  const res = await fetch(url, opts);
+  let data = {};
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok && !data.ok) throw new Error(data.error || data.message || ("HTTP " + res.status));
+  return data;
+}
+function flash(msg, ok = true) {
+  const el = document.getElementById('flash');
+  el.textContent = msg;
+  el.className = 'flash ' + (ok ? 'ok' : 'err') + ' show';
+  setTimeout(() => el.className = 'flash', 2600);
+}
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function badgeClass(status) {
+  if (!status) return 'pending';
+  if (status.includes('全部完成')) return 'done';
+  if (status.includes('进行到')) return 'running';
+  if (status.includes('中断') || status.includes('失败')) return 'failed';
+  return 'pending';
+}
+
+// ── 列表 ──
+async function loadTasks() {
+  const el = document.getElementById('task-list');
+  try {
+    const data = await api('/api/tasks');
+    if (!data.tasks.length) { el.innerHTML = '<div class="muted">还没有任务，点右上角"新建任务"开始。</div>'; return; }
+    el.innerHTML = data.tasks.map(t => `
+      <div class="card" onclick="openDetail('${esc(t.run_id)}')">
+        <div class="row1">
+          <span class="title">${esc(t.title)}</span>
+          <span class="badge ${badgeClass(t.status)}">${esc(t.status)}</span>
+        </div>
+        <div class="row2">
+          <span class="run-id">${esc(t.run_id)}</span>
+          <span>最后运行: ${esc(t.last_run || '-')}</span>
+          <button class="btn sm danger" style="margin-left:auto;" onclick="event.stopPropagation(); deleteTask('${esc(t.run_id)}')">🗑 删除</button>
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    el.innerHTML = `<div class="muted">加载失败: ${esc(e.message)}</div>`;
+  }
+}
+
+// ── 详情 ──
+function openDetail(runId) {
+  currentRunId = runId;
+  document.getElementById('view-list').classList.add('hidden');
+  document.getElementById('view-detail').classList.remove('hidden');
+  refreshDetail();
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(refreshStatus, 2000);
+}
+function showList() {
+  currentRunId = null;
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  document.getElementById('view-detail').classList.add('hidden');
+  document.getElementById('view-list').classList.remove('hidden');
+  loadTasks();
+}
+
+async function refreshDetail() {
+  try {
+    const d = await api('/api/tasks/' + encodeURIComponent(currentRunId));
+    renderDetail(d);
+  } catch (e) { flash(e.message, false); }
+}
+
+function renderDetail(d, running) {
+  const c = d.concept || {};
+  document.getElementById('detail-header').innerHTML = `
+    <h2>${esc(c.title || d.run_id)}</h2>
+    <div class="meta">
+      关键词: <b>${esc((c.core_concepts || []).join(', '))}</b><br>
+      年份: <b>${esc(c.year_range || '-')}</b> · 数据库: <b>${esc((c.databases || []).join(', '))}</b> · 目标: <b>${esc(c.target || '-')}</b> 篇/库<br>
+      <span class="run-id">${esc(d.run_id)}</span>
+    </div>`;
+  const tp = document.getElementById('total-papers');
+  if (tp) tp.textContent = d.total_papers != null ? d.total_papers : '-';
+  const cfgTop = document.getElementById('cfg-top');
+  // 用户正在输入时不覆盖输入框（轮询每 2s 触发 renderDetail，否则会把输入重置回配置值）
+  if (cfgTop && document.activeElement !== cfgTop) cfgTop.value = (c.top || 15);
+
+  const rep = d.stage_report || {};
+  document.getElementById('steps').innerHTML = d.steps.map(s => {
+    const active = rep.stage === s.id && rep.status === 'running';
+    let cls = s.done ? 'done' : '';
+    if (active && running) cls = 'active';
+    if (rep.stage === s.id && rep.status === 'done' && rep.ok === false) cls = 'failed';
+    return `<div class="step ${cls}">
+      <div class="dot"></div>
+      <div class="name">${esc(s.name)}</div>
+      <div class="dir">${esc(s.dir)}</div>
+      <div class="actions">
+        <button class="btn sm" onclick="runTask('${s.id}','${s.id}',false)">▶ 执行</button>
+        ${s.id !== 'health' ? `<button class="btn sm" onclick="rollbackTo('${s.id}')">↩ 回退到此</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const outs = (d.outputs || []).map(o => `${o.name} (${Math.max(1, Math.round(o.size/1024))}KB)`).join(' · ');
+  document.getElementById('result-meta').textContent = outs ? '产物: ' + outs : '';
+}
+
+async function refreshStatus() {
+  if (!currentRunId) return;
+  try {
+    const st = await api('/api/tasks/' + encodeURIComponent(currentRunId) + '/status');
+    const running = !!st.running;
+    renderDetail(st.detail, running);
+    document.getElementById('btn-run-all').disabled = running;
+    document.getElementById('btn-stop').disabled = !running;
+    document.getElementById('run-status').textContent = running
+      ? `⏳ 运行中${st.current_stage ? '（当前: ' + st.current_stage + '）' : ''}...`
+      : '';
+    const panel = document.getElementById('progress-panel');
+    if (running || st.log_tail) {
+      panel.style.display = '';
+      document.getElementById('progress-log').textContent = st.log_tail || '（暂无输出）';
+    } else {
+      panel.style.display = 'none';
+    }
+    // 结果
+    if (!running) {
+      const content = document.getElementById('result-content');
+      const marker = content.dataset.loaded;
+      if (marker !== st.detail.run_id + ':' + (st.detail.stage_report || {}).ts) {
+        try {
+          const res = await fetch('/api/tasks/' + encodeURIComponent(currentRunId) + '/result');
+          if (res.ok) {
+            content.textContent = await res.text();
+            content.dataset.loaded = st.detail.run_id + ':' + (st.detail.stage_report || {}).ts;
+          }
+        } catch (e) {}
+      }
+    }
+  } catch (e) {}
+}
+
+// ── 输出配置 ──
+async function saveTop() {
+  const v = parseInt(document.getElementById('cfg-top').value);
+  if (!v || v < 1 || v > 500) { flash('无效篇数（1-500）', false); return; }
+  try {
+    const data = await api('/api/tasks/' + encodeURIComponent(currentRunId) + '/config', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({top: v}),
+    });
+    if (data.ok) {
+      flash('已保存: 输出 ' + data.top + ' 篇（下次需回退到 rank 重跑才生效）');
+      document.getElementById('cfg-top').value = data.top;
+      refreshDetail();
+    } else {
+      flash(data.error || '保存失败', false);
+    }
+  } catch (e) { flash('保存失败: ' + e.message, false); }
+}
+
+// ── 浏览器登录引导 ──
+async function openBrowserLogin() {
+  const pre = document.getElementById('login-result');
+  pre.classList.remove('muted');
+  pre.textContent = '正在检测 Chrome / 启动浏览器...';
+  try {
+    const data = await api('/api/tasks/' + encodeURIComponent(currentRunId) + '/open-browser', {method: 'POST'});
+    if (!data.ok) {
+      pre.textContent = '✗ ' + (data.error || '打开失败') + (data.hint ? '\n' + data.hint : '');
+      flash(data.error || '打开失败', false);
+      return;
+    }
+    if (!data.needed) {
+      pre.textContent = data.message;
+      return;
+    }
+    pre.textContent = data.message + '\n\n完成后点「🩺 检查登录态」验证各库登录是否有效。';
+  } catch (e) { pre.textContent = '打开失败: ' + e.message; flash('打开失败', false); }
+}
+
+async function checkLogin() {
+  const pre = document.getElementById('login-result');
+  pre.classList.remove('muted');
+  pre.textContent = '检查中（约 15 秒）...';
+  try {
+    const r = await api('/api/tasks/' + encodeURIComponent(currentRunId) + '/health', {method: 'POST'});
+    const checks = r.checks || {};
+    const lines = [];
+    const mark = ok => ok ? '✓' : '✗';
+    if (checks.deps) lines.push(`[deps]    ${mark(checks.deps.ok)} ${checks.deps.msg || ''}`);
+    if (checks.scopus_key) lines.push(`[key]     ${mark(checks.scopus_key.ok)} ${checks.scopus_key.msg || ''}`);
+    if (checks.browser) lines.push(`[browser] ${mark(checks.browser.ok)} ${checks.browser.msg || ''}`);
+    if (checks.logins?.detail) {
+      for (const [k, v] of Object.entries(checks.logins.detail)) {
+        lines.push(`[login]   ${mark(v.ok)} ${k}: ${v.msg || ''}`);
+      }
+    } else if (checks.logins) {
+      lines.push(`[login]   ${mark(checks.logins.ok)} ${checks.logins.msg || ''}`);
+    }
+    lines.push(`结果: ${r.ok ? '✓ 全部正常' : '✗ ' + (r.summary || '有异常')}`);
+    pre.textContent = lines.join('\n');
+  } catch (e) { pre.textContent = '检查失败: ' + e.message; flash('检查失败', false); }
+}
+
+// ── 动作 ──
+async function runTask(from, to, force) {
+  try {
+    const data = await api('/api/tasks/' + encodeURIComponent(currentRunId) + '/run', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({from_stage: from, to_stage: to, force: force}),
+    });
+    flash(data.message || '已启动');
+    refreshStatus();
+  } catch (e) { flash(e.message, false); }
+}
+
+async function stopTask() {
+  if (!confirm('停止当前任务？')) return;
+  try {
+    await api('/api/tasks/' + encodeURIComponent(currentRunId) + '/stop', {method: 'POST'});
+    flash('已发送停止指令');
+    setTimeout(refreshStatus, 1500);
+  } catch (e) { flash(e.message, false); }
+}
+
+async function rollbackTo(stage) {
+  if (!confirm(`回退到「${stage}」？将删除 ${stage} 及之后的所有产物，可重新执行。`)) return;
+  try {
+    await api('/api/tasks/' + encodeURIComponent(currentRunId) + '/rollback', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({to: stage}),
+    });
+    flash(`已回退到 ${stage}`);
+    refreshDetail();
+  } catch (e) { flash(e.message, false); }
+}
+
+async function deleteTask(runId) {
+  if (!confirm(`删除任务「${runId}」？\n将删除整个 run 目录（含所有搜索/摘要/结果产物），不可恢复。`)) return;
+  try {
+    await api('/api/tasks/' + encodeURIComponent(runId), {method: 'DELETE'});
+    flash('已删除: ' + runId);
+    loadTasks();
+  } catch (e) { flash(e.message, false); }
+}
+
+async function deleteCurrent() {
+  if (!currentRunId) return;
+  if (!confirm(`删除当前任务「${currentRunId}」？\n将删除整个 run 目录（含所有产物），不可恢复。`)) return;
+  try {
+    await api('/api/tasks/' + encodeURIComponent(currentRunId), {method: 'DELETE'});
+    flash('已删除: ' + currentRunId);
+    showList();
+  } catch (e) { flash(e.message, false); }
+}
+
+function downloadMd() {
+  const a = document.createElement('a');
+  a.href = '/api/tasks/' + encodeURIComponent(currentRunId) + '/result.md';
+  a.download = 'final_results_' + currentRunId + '.md';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function downloadBib() {
+  const a = document.createElement('a');
+  a.href = '/api/tasks/' + encodeURIComponent(currentRunId) + '/result.bib';
+  a.download = 'results_' + currentRunId + '.bib';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+// ── 新建任务 ──
+function openCreate() { document.getElementById('create-modal').classList.add('show'); }
+function closeCreate() { document.getElementById('create-modal').classList.remove('show'); }
+
+async function createTask() {
+  if (creating) return;
+  const title = document.getElementById('f-title').value.trim();
+  const concepts = document.getElementById('f-concepts').value.split(',').map(s => s.trim()).filter(Boolean);
+  if (!title || !concepts.length) { flash('标题和关键词必填', false); return; }
+
+  // 同义词解析: "microcontroller=MCU,单片机 | embedded=firmware"
+  const synonyms = {};
+  document.getElementById('f-synonyms').value.split('|').forEach(part => {
+    part = part.trim();
+    if (!part.includes('=')) return;
+    const [k, vs] = part.split('=');
+    const vals = vs.split(',').map(s => s.trim()).filter(Boolean);
+    if (k.trim() && vals.length) synonyms[k.trim()] = vals;
+  });
+
+  const dbs = [...document.querySelectorAll('#f-dbs input:checked')].map(i => i.value);
+  creating = true;
+  try {
+    const data = await api('/api/tasks', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        title, core_concepts: concepts, synonyms,
+        sub_topics: document.getElementById('f-subs').value.split(',').map(s => s.trim()).filter(Boolean),
+        exclude: document.getElementById('f-excl').value.split(',').map(s => s.trim()).filter(Boolean),
+        year_range: document.getElementById('f-year').value.trim() || '2020-2026',
+        databases: dbs, target: parseInt(document.getElementById('f-target').value) || 40,
+        top: parseInt(document.getElementById('f-top').value) || 15,
+      }),
+    });
+    closeCreate();
+    if (data.ok) {
+      flash('已创建: ' + data.run_id);
+      loadTasks();
+    } else {
+      flash('任务已存在: ' + data.run_id, false);
+      loadTasks();
+    }
+  } catch (e) { flash(e.message, false); } finally { creating = false; }
+}
+
+// ── 健康检查 ──
+async function runHealth() {
+  const box = document.getElementById('health-result');
+  const pre = document.getElementById('health-pre');
+  box.classList.remove('hidden');
+  pre.textContent = '检查中（约 15 秒）...';
+  try {
+    const r = await api('/api/health', {method: 'POST'});
+    const checks = r.checks || {};
+    const lines = [];
+    const mark = ok => ok ? '✓' : '✗';
+    lines.push(`[deps]    ${mark(checks.deps?.ok)} ${checks.deps?.msg || ''}`);
+    lines.push(`[key]     ${mark(checks.scopus_key?.ok)} ${checks.scopus_key?.msg || ''}`);
+    lines.push(`[browser] ${mark(checks.browser?.ok)} ${checks.browser?.msg || ''}`);
+    if (checks.logins?.detail) {
+      for (const [k, v] of Object.entries(checks.logins.detail)) {
+        lines.push(`[login]   ${mark(v.ok)} ${k}: ${v.msg || ''}`);
+      }
+    }
+    lines.push(`结果: ${r.ok ? '✓ 全部正常' : '✗ ' + (r.summary || '有异常')}`);
+    pre.textContent = lines.join('\n');
+    if (!r.ok) flash('健康检查有异常', false);
+  } catch (e) {
+    pre.textContent = '健康检查失败: ' + e.message;
+    flash('健康检查失败: ' + e.message, false);
+  }
+}
+
+// ── 启动 ──
+loadTasks();
+</script>
+</body>
+</html>
