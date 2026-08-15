@@ -7,7 +7,7 @@ cdp_utils.py — CDP 标签页工具（standalone 版）
     - 优先复用已有的 about:blank 空闲标签（避免反复新建导致空页堆积）
     - 没有才新建
 
-被 _health_check.py（登录态检查）等使用。
+被 _health_check.py（会话检查）等使用。
 """
 
 import json

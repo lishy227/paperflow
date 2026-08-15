@@ -3,12 +3,12 @@
 launch_browser.py — 启动/复用 CDP 浏览器（standalone 版）
 ========================================================
 
-替代 OpenClaw 的 browser 管理。用独立 user-data-dir 持久化登录态，
-关闭再启动后 IEEE/ACM/EV 的登录保持有效（cookie 存磁盘）。
+替代 OpenClaw 的 browser 管理。用独立 user-data-dir 持久化会话，
+关闭再启动后 IEEE/ACM/EV 的认证保持有效（cookie 存磁盘）。
 
 用法：
     python launch_browser.py                 # 检测或启动浏览器，然后退出
-    python launch_browser.py --open <url>    # 启动并打开页面（登录引导用）
+    python launch_browser.py --open <url>    # 启动并打开页面（访问引导用）
     python launch_browser.py --status        # 只检查浏览器是否在运行
     python launch_browser.py --kill          # 关闭自己启动的浏览器（profile 保留）
 
@@ -32,7 +32,7 @@ from utils.encoding import ensure_utf8_stdio
 
 ensure_utf8_stdio()
 
-# 独立 profile 目录（登录态持久化在这里）
+# 独立 profile 目录（会话持久化在这里）
 PROFILE_DIR = project_path(".browser-profile")
 LOG_DIR = project_path(".browser-logs")
 LOG_PATH = LOG_DIR / "browser.log"
@@ -110,7 +110,7 @@ def launch(open_urls: list[str] | None = None) -> int:
         cmd.extend(open_urls)
 
     print(f"[browser] 启动: {browser}")
-    print(f"[browser] profile: {PROFILE_DIR}（登录态持久化在这里）")
+    print(f"[browser] profile: {PROFILE_DIR}（会话持久化在这里）")
     try:
         with open(LOG_PATH, "w", encoding="utf-8") as logf:
             subprocess.Popen(cmd, stdout=logf, stderr=subprocess.STDOUT, shell=False)
@@ -160,7 +160,7 @@ def _open_tab(url: str) -> None:
 
 
 def kill() -> None:
-    """关闭本脚本启动的浏览器（保留 profile，登录态不清除）。"""
+    """关闭本脚本启动的浏览器（保留 profile，会话不清除）。"""
     flag = PROFILE_DIR / PERSISTENT_FLAG
     if not flag.exists():
         print("[browser] 没有本脚本启动的浏览器记录，跳过（安全起见不杀第三方进程）")

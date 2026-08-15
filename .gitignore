@@ -1,7 +1,7 @@
 # Sensitive config（key 只放 .env；config.yaml 是静态配置，随项目分发）
 .env
 
-# standalone 浏览器 profile（登录态）
+# standalone 浏览器 profile（会话）
 .browser-profile/
 .browser-logs/
 

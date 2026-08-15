@@ -385,7 +385,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json(404, {"error": f"unknown action: {action}"})
 
     def _handle_open_browser(self, run_id: str):
-        """一键打开浏览器登录：检测 Chrome/Edge → 启动/复用 CDP → 打开任务选中的付费库主页。"""
+        """一键打开浏览器认证：检测 Chrome/Edge → 启动/复用 CDP → 打开任务选中的扩展数据库主页。"""
         detail = m.task_detail(run_id)
         if detail is None:
             self._json(404, {"error": f"task not found: {run_id}"})
@@ -395,7 +395,7 @@ class Handler(BaseHTTPRequestHandler):
         if not paid:
             self._json(200, {
                 "ok": True, "needed": False,
-                "message": "该任务仅使用免费源（OpenAlex），纯 API 无需浏览器登录",
+                "message": "该任务仅使用免费源（OpenAlex），纯 API 无需浏览器认证",
                 "urls": [],
             })
             return
@@ -412,7 +412,7 @@ class Handler(BaseHTTPRequestHandler):
             })
             return
 
-        # 2. 取付费库主页 URL（优先 login_url，其次 base_url）
+        # 2. 取扩展数据库主页 URL（优先 login_url，其次 base_url）
         cfg = (get_config() or {}).get("databases", {})
         urls, opened = [], []
         for db in paid:
@@ -431,13 +431,13 @@ class Handler(BaseHTTPRequestHandler):
         names = [f"{d}({u})" for d, u in zip(opened, urls)]
         self._json(200, {
             "ok": True, "needed": True,
-            "message": f"已在浏览器打开 {len(opened)} 个数据库主页，请在浏览器中完成登录：\n" + "\n".join(names),
+            "message": f"已在浏览器打开 {len(opened)} 个数据库主页，请在浏览器中完成认证：\n" + "\n".join(names),
             "urls": urls,
             "browser": browser,
         })
 
     def _handle_task_health(self, run_id: str):
-        """按任务选择的数据库跑健康检查（免费源任务自动跳过 key/浏览器/登录态）。"""
+        """按任务选择的数据库跑健康检查（免费源任务自动跳过 key/浏览器/会话）。"""
         detail = m.task_detail(run_id)
         if detail is None:
             self._json(404, {"error": f"task not found: {run_id}"})

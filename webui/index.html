@@ -134,12 +134,12 @@
       </div>
     </div>
     <div class="panel">
-      <h3>浏览器登录</h3>
+      <h3>浏览器认证</h3>
       <div style="margin: 10px 0; display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn sm" onclick="openBrowserLogin()">🌐 打开浏览器登录</button>
-        <button class="btn sm" onclick="checkLogin()">🩺 检查登录态</button>
+        <button class="btn sm" onclick="openBrowserLogin()">🌐 打开浏览器认证</button>
+        <button class="btn sm" onclick="checkLogin()">🩺 检查会话</button>
       </div>
-      <pre id="login-result" class="muted">（点「打开浏览器登录」启动浏览器并打开本任务的数据库主页，登录完成后点「检查登录态」验证）</pre>
+      <pre id="login-result" class="muted">（点「打开浏览器认证」启动浏览器并打开本任务的数据库主页，认证完成后点「检查会话」验证）</pre>
     </div>
     <div class="panel">
       <h3>结果</h3>
@@ -165,7 +165,7 @@
         <div class="db-group"><span class="db-group-title">免费源（无需账号，纯 API）</span>
           <label><input type="checkbox" value="openalex" checked> OpenAlex</label>
         </div>
-        <div class="db-group"><span class="db-group-title">付费库（需机构登录态）</span>
+        <div class="db-group"><span class="db-group-title">扩展数据库（需访问权限）</span>
           <label><input type="checkbox" value="scopus"> Scopus</label>
           <label><input type="checkbox" value="ieee"> IEEE</label>
           <label><input type="checkbox" value="acm"> ACM</label>
@@ -351,7 +351,7 @@ async function saveTop() {
   } catch (e) { flash('保存失败: ' + e.message, false); }
 }
 
-// ── 浏览器登录引导 ──
+// ── 浏览器访问引导 ──
 async function openBrowserLogin() {
   const pre = document.getElementById('login-result');
   pre.classList.remove('muted');
@@ -367,7 +367,7 @@ async function openBrowserLogin() {
       pre.textContent = data.message;
       return;
     }
-    pre.textContent = data.message + '\n\n完成后点「🩺 检查登录态」验证各库登录是否有效。';
+    pre.textContent = data.message + '\n\n完成后点「🩺 检查会话」验证各库认证是否有效。';
   } catch (e) { pre.textContent = '打开失败: ' + e.message; flash('打开失败', false); }
 }
 

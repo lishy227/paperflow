@@ -3,7 +3,7 @@
 _search_free.py — 免费源搜索（OpenAlex）
 ================================================
 
-纯 API 搜索，无需 key、无需浏览器、无需登录态。
+纯 API 搜索，无需 key、无需浏览器、无需会话。
 输出与 _search_scopus.py 相同的契约：{database, total_results, count, papers[]}。
 
 用法:

@@ -7,7 +7,7 @@ main.py — paperflow standalone 管道入口
 
 用法：
     python main.py init <run_id>                     # 创建运行文件夹 + search_concept 模板
-    python main.py launch                            # 启动浏览器（登录引导）
+    python main.py launch                            # 启动浏览器（访问引导）
     python main.py health <run_id>                   # 只跑健康检查
     python main.py run <run_id>                      # 跑全管道
     python main.py run <run_id> --from merge         # 从指定阶段开始
@@ -17,7 +17,7 @@ main.py — paperflow standalone 管道入口
 
 退出码：
     0  成功
-    1  可重试失败（页面空 / API 限流 / 登录态失效）
+    1  可重试失败（页面空 / API 限流 / 会话失效）
     2  环境/配置错误（缺依赖 / 缺 key / 浏览器没启动）
 
 设计原则（替代 AI 的决策职责）：
@@ -87,7 +87,7 @@ STAGE_OUTPUTS = {
     "output": ["step5_output/final_results.md", "step5_output/results.bib"],
 }
 
-# 数据库 key → 搜索结果文件名（付费 + 免费）
+# 数据库 key → 搜索结果文件名（扩展 + 免费）
 _DB_RESULT_FILE = {
     "scopus": "scopus_results.json",
     "ieee": "ieee_results.json",
@@ -172,7 +172,7 @@ def stage_done(run_dir: Path, stage: str) -> bool:
     """阶段是否已完成（产物齐全且有效）。兼容旧版平铺路径。
 
     health 特殊：无产物，恒返回 False——每次 run 都重新执行健康检查。
-    search 特殊：结果文件按任务启用的数据库检查（免费源/付费库各自独立）。
+    search 特殊：结果文件按任务启用的数据库检查（免费源/扩展数据库各自独立）。
     """
     if stage == "health":
         return False
@@ -265,10 +265,10 @@ def load_concept(run_dir: Path) -> dict:
 # ─────────────────────────────────────────────────────────────
 
 def stage_health(run_dir: Path, yes: bool, force: bool = False) -> tuple[bool, str]:
-    """Stage 0: 统一健康检查（依赖 / key / 浏览器 / 登录态）。
+    """Stage 0: 统一健康检查（依赖 / key / 浏览器 / 会话）。
 
     按任务选择的数据库按需检查：全部为免费源（openalex）时
-    跳过 key/浏览器/登录态检查（免费源纯 API 不需要）。
+    跳过 key/浏览器/会话检查（免费源纯 API 不需要）。
     """
     print(f"\n=== Stage 0 健康检查 ===")
     from health_check import run_all, print_report
@@ -289,7 +289,7 @@ def stage_health(run_dir: Path, yes: bool, force: bool = False) -> tuple[bool, s
         logf.write(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
 
     if report["ok"]:
-        return True, "配置 + 浏览器 + 登录态全部正常"
+        return True, "配置 + 浏览器 + 会话全部正常"
     return False, report["summary"]
 
 
@@ -521,8 +521,8 @@ def stage_enrich(run_dir: Path, yes: bool, force: bool = False) -> tuple[bool, s
 
     if blocked:
         choice = ask(
-            "摘要缺失率 > 5%。可选：跑 Tier 2（逐篇开详情页补摘要，需要浏览器+登录态）或继续",
-            [("t", "跑 Tier 2 补摘要（先确认浏览器已登录）"),
+            "摘要缺失率 > 5%。可选：跑 Tier 2（逐篇开详情页补摘要，需要浏览器+会话）或继续",
+            [("t", "跑 Tier 2 补摘要（先确认浏览器已认证）"),
              ("c", "继续管道（缺失的摘要不影响评分结构）"),
              ("s", "停止")],
             "t", yes,
@@ -764,7 +764,7 @@ def cmd_init(run_id: str = None) -> int:
     db_names = ["openalex", "scopus", "ieee", "acm", "engineering_village"]
     print("  数据库（可多选）:")
     for i, n in enumerate(db_names, 1):
-        tag = "（免费，无需账号）" if n == "openalex" else "（付费，需登录态）"
+        tag = "（免费，无需账号）" if n == "openalex" else "（扩展，需会话）"
         print(f"    [{i}] {n} {tag}")
     dbs_raw = _ask_text("输入编号（逗号分隔）", default="1,2")
     try:
@@ -1150,7 +1150,7 @@ def main():
     p_show = sub.add_parser("show", help="查看任务详情")
     p_show.add_argument("run_id")
 
-    p_launch = sub.add_parser("launch", help="启动浏览器（登录引导）")
+    p_launch = sub.add_parser("launch", help="启动浏览器（访问引导）")
     p_launch.add_argument("--open", action="append", help="启动后打开的 URL（可重复传）")
 
     p_health = sub.add_parser("health", help="只跑健康检查")

@@ -3,10 +3,10 @@
 免费 API 查询预检 · Free Pre-check
 ===================================
 
-在正式搜索付费数据库之前，用 OpenAlex 免费 API 快速检查：
+在正式搜索扩展数据库之前，用 OpenAlex 免费 API 快速检查：
 - 查询是否过窄（0 结果 → 核心概念 AND 冲突）
 - 查询是否过宽（> 2000 结果 → 需要加约束）
-- 查询是否合理（3-2000 → 可以上付费库）
+- 查询是否合理（3-2000 → 可以上扩展数据库）
 
 纯粹 HTTP GET，不开浏览器，100-200ms 一次调用。
 OpenAlex 无需 API Key，无限速，覆盖全学科。
@@ -35,7 +35,7 @@ OpenAlex 无需 API Key，无限速，覆盖全学科。
 
 阈值（可调）：
     TOO_NARROW  = 3     # ≤3 条 → 查询太窄
-    TOO_BROAD   = 2000  # >2000 条 → 查询太宽（付费库 25/page 的话是 80+ 页）
+    TOO_BROAD   = 2000  # >2000 条 → 查询太宽（扩展数据库 25/page 的话是 80+ 页）
 """
 
 import argparse
@@ -183,7 +183,7 @@ def classify_count(count: int) -> tuple[str, str]:
     elif count > TOO_BROAD:
         return ("broad", _broad_suggestion(count))
     else:
-        return ("good", f"命中 {count} 篇，查询范围合理，可以上付费库")
+        return ("good", f"命中 {count} 篇，查询范围合理，可以上扩展数据库")
 
 
 def _narrow_suggestion(count: int) -> str:
@@ -261,7 +261,7 @@ def precheck(concept_path: str, quiet: bool = False) -> dict:
         return {
             "signal": "skip", "count": 0,
             "query": query,
-            "suggestion": f"OpenAlex API 不可用 ({result['error']})，跳过预检，直接上付费库",
+            "suggestion": f"OpenAlex API 不可用 ({result['error']})，跳过预检，直接上扩展数据库",
             "error": result["error"]
         }
 
@@ -290,7 +290,7 @@ def precheck(concept_path: str, quiet: bool = False) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Free Pre-check — 用 OpenAlex 预检查询范围，避免付费库白跑",
+        description="Free Pre-check — 用 OpenAlex 预检查询范围，避免扩展数据库白跑",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -300,7 +300,7 @@ Examples:
 
 Signals:
   narrow  — 查询 < 3 篇，需放宽概念
-  good    — 3-2000 篇，可以上付费库
+  good    — 3-2000 篇，可以上扩展数据库
   broad   — > 2000 篇，需收紧概念
   skip    — API 不可用，跳过预检继续管道
         """,

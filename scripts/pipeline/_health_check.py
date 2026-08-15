@@ -1,5 +1,5 @@
 """
-paperflow 登录态健康检查
+paperflow 会话健康检查
 在 Stage 0 管道启动前运行，验证四个数据库的浏览器 session 是否有效。
 
 用法:
@@ -8,22 +8,22 @@ paperflow 登录态健康检查
   python _health_check.py --json           # JSON 输出（供管道调用）
 
 每个库的测试都是最小化的固定测试：
-  - IEEE:    打开搜索页 → 检查 xplGlobal 是否定义（未登录 = 重定向到登录页）
+  - IEEE:    打开搜索页 → 检查 xplGlobal 是否定义（未认证 = 重定向到认证页）
   - Scopus:  检查 API key 是否有效（HTTP 直接请求，不走浏览器）
-  - EV:      打开搜索页 → 检查搜索表单是否存在（未登录 = 重定向到登录页）
-  - ACM:     打开搜索页 → 检查搜索结果是否返回（未登录 = 重定向到登录页）
+  - EV:      打开搜索页 → 检查搜索表单是否存在（未认证 = 重定向到认证页）
+  - ACM:     打开搜索页 → 检查搜索结果是否返回（未认证 = 重定向到认证页）
 
 输出格式 (--json):
   {
     "passed": true/false,
     "checks": {
-      "ieee": {"ok": true, "msg": "xplGlobal 已加载，登录态正常"},
+      "ieee": {"ok": true, "msg": "xplGlobal 已加载，会话正常"},
       "scopus": {"ok": true, "msg": "API key 有效"},
-      "ev": {"ok": false, "msg": "页面重定向到登录页"},
+      "ev": {"ok": false, "msg": "页面重定向到认证页"},
       "acm": {"ok": true, "msg": "搜索结果正常返回"}
     },
     "failed_count": 1,
-    "summary": "1/4 数据库登录态异常: EV"
+    "summary": "1/4 数据库会话异常: EV"
   }
 """
 
@@ -45,13 +45,13 @@ HEALTH_TESTS = {
                     const signedIn = body.includes('Sign Out') || body.includes('Access provided by');
                     const isLoginPage = body.includes('Sign In') && body.includes('Institutional');
                     if (hasGlobal || signedIn || hasResults) {
-                        const how = signedIn ? '机构访问已登录' : (hasGlobal ? 'xplGlobal 已加载' : '搜索结果已返回');
-                        return JSON.stringify({ok: true, msg: how + '，登录态正常'});
+                        const how = signedIn ? '已认证访问' : (hasGlobal ? 'xplGlobal 已加载' : '搜索结果已返回');
+                        return JSON.stringify({ok: true, msg: how + '，会话正常'});
                     }
                     if (isLoginPage) {
-                        return JSON.stringify({ok: false, msg: '页面重定向到登录页，需要重新登录'});
+                        return JSON.stringify({ok: false, msg: '页面重定向到认证页，需要重新认证'});
                     }
-                    return JSON.stringify({ok: false, msg: '无法确认登录态，请手动检查浏览器的 IEEE 页面'});
+                    return JSON.stringify({ok: false, msg: '无法确认会话，请手动检查浏览器的 IEEE 页面'});
                 } catch(e) {
                     return JSON.stringify({ok: false, msg: '检查脚本执行异常: ' + e.message});
                 }
@@ -78,12 +78,12 @@ HEALTH_TESTS = {
                     const welcomePage = href.includes('home.url') || body.includes('Trouble signing in') || body.includes('Welcome to Engineering Village');
                     const isLoginPage = body.includes('Sign in') || body.includes('Login');
                     if (hasSearchForm && !redirectedToLogin) {
-                        return JSON.stringify({ok: true, msg: '搜索页加载成功，登录态正常'});
+                        return JSON.stringify({ok: true, msg: '搜索页加载成功，会话正常'});
                     }
                     if (redirectedToLogin || isLoginPage || welcomePage) {
-                        return JSON.stringify({ok: false, msg: '未登录（跳转到 Elsevier 登录或欢迎页），需要重新登录'});
+                        return JSON.stringify({ok: false, msg: '未认证（跳转到 Elsevier 认证或欢迎页），需要重新认证'});
                     }
-                    return JSON.stringify({ok: false, msg: '无法确认登录态: 未找到搜索表单也未检测到登录页。请手动检查'});
+                    return JSON.stringify({ok: false, msg: '无法确认会话: 未找到搜索表单也未检测到认证页。请手动检查'});
                 } catch(e) {
                     return JSON.stringify({ok: false, msg: '检查脚本执行异常: ' + e.message});
                 }
@@ -104,15 +104,15 @@ HEALTH_TESTS = {
                                          body.includes('Ray ID') || body.includes('Just a moment') ||
                                          body.includes('verify you are human') || body.includes('请稍候');
                     if (hasResults) {
-                        return JSON.stringify({ok: true, msg: '搜索结果正常返回，登录态正常'});
+                        return JSON.stringify({ok: true, msg: '搜索结果正常返回，会话正常'});
                     }
                     if (isCloudflare) {
                         return JSON.stringify({ok: false, msg: '触发 Cloudflare 人机验证，请在浏览器里完成验证后重试'});
                     }
                     if (isLoginPage) {
-                        return JSON.stringify({ok: false, msg: '页面重定向到登录页，需要重新登录'});
+                        return JSON.stringify({ok: false, msg: '页面重定向到认证页，需要重新认证'});
                     }
-                    return JSON.stringify({ok: false, msg: '无法确认登录态: 无搜索结果也无登录提示。请手动检查'});
+                    return JSON.stringify({ok: false, msg: '无法确认会话: 无搜索结果也无认证提示。请手动检查'});
                 } catch(e) {
                     return JSON.stringify({ok: false, msg: '检查脚本执行异常: ' + e.message});
                 }
@@ -231,7 +231,7 @@ def check_one(db_key, config_path="config.yaml"):
             ws.send(json.dumps({"id": 2, "method": "Runtime.enable"}))
             ws.send(json.dumps({"id": 3, "method": "Page.navigate", "params": {"url": test["url"]}}))
             # 不等 loadEventFired：SPA/Cloudflare 页面可能永不触发，空转 30s 是主要耗时来源。
-            # 导航发出后直接进固定等待，靠 evaluate 的 JS 特征判断（含 Cloudflare/登录页检测），
+            # 导航发出后直接进固定等待，靠 evaluate 的 JS 特征判断（含 Cloudflare/认证页检测），
             # 页面未就绪时也会明确报"无法确认"而非误判正常。
         finally:
             ws.close()
@@ -302,15 +302,15 @@ def check_all(config_path="config.yaml", databases=None):
         "failed_count": len(failed),
         "failed_dbs": failed,
         "summary": (
-            f"{scope}登录态正常"
+            f"{scope}会话正常"
             if passed
-            else f"{len(failed)}/{len(checks)} 数据库登录态异常: {', '.join(failed)}"
+            else f"{len(failed)}/{len(checks)} 数据库会话异常: {', '.join(failed)}"
         ),
     }
 
 
 def main():
-    parser = argparse.ArgumentParser(description="paperflow 登录态健康检查")
+    parser = argparse.ArgumentParser(description="paperflow 会话健康检查")
     parser.add_argument("--db", help="只检查指定数据库 (ieee/scopus/ev/acm)")
     parser.add_argument("--json", action="store_true", help="JSON 输出")
     parser.add_argument("--config", default="config.yaml", help="配置文件路径")
@@ -332,7 +332,7 @@ def main():
     else:
         # 人类可读输出
         print("\n" + "=" * 50)
-        print("  paperflow 登录态健康检查")
+        print("  paperflow 会话健康检查")
         print("=" * 50)
         for db_key, check in report["checks"].items():
             icon = "✓" if check["ok"] else "✗"

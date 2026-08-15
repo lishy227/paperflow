@@ -90,7 +90,7 @@ def extract_primary_key(paper: dict) -> tuple[str, str] | None:
     提取渠道主键。返回 (key_type, key) 或 None。
 
     主键类型（按优先级）：
-      - ("doc", ...)      — 付费库 docId（IEEE / EV 等无 DOI 论文）
+      - ("doc", ...)      — 扩展数据库 docId（IEEE / EV 等无 DOI 论文）
       - ("arxiv", ...)    — arXiv ID（如 2301.12345，无 DOI 预印本兜底）
       - ("openalex", ...) — OpenAlex ID（如 W2761234567，无 DOI 兜底）
     """

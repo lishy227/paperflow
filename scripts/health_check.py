@@ -7,12 +7,12 @@ health_check.py — paperflow 统一健康检查（可随时调用）
     1. 依赖库（yaml / websocket / aiohttp）
     2. Scopus API key（.env 的 SCOPUS_API_KEY）
     3. 浏览器 CDP（127.0.0.1:CDP_PORT 是否在线）
-    4. 付费库登录态（IEEE / Scopus / ACM / EV，复用 pipeline/_health_check.py）
+    4. 扩展数据库会话（IEEE / Scopus / ACM / EV，复用 pipeline/_health_check.py）
 
 用法：
     python scripts/health_check.py            # 人类可读输出
     python scripts/health_check.py --json     # JSON 输出（机器可读）
-    python scripts/health_check.py --db acm   # 只查单个库的登录态
+    python scripts/health_check.py --db acm   # 只查单个库的会话
 
 被调用方：
     - main.py 管道 Stage 0（stage_health）
@@ -21,7 +21,7 @@ health_check.py — paperflow 统一健康检查（可随时调用）
 
 退出码：
     0  全部通过
-    1  可重试失败（登录态失效 / 浏览器未启动）
+    1  可重试失败（会话失效 / 浏览器未启动）
     2  环境/配置错误（缺依赖 / 缺 key）
 """
 
@@ -45,7 +45,7 @@ ensure_utf8_stdio()
 
 REQUIRED_MODULES = ["yaml", "websocket", "aiohttp"]
 
-# 免费源（纯 API，无需 key/浏览器/登录态）
+# 免费源（纯 API，无需 key/浏览器/会话）
 FREE_DBS = {"openalex"}
 
 
@@ -63,7 +63,7 @@ def check_deps() -> dict:
 
 
 def check_scopus_key() -> dict:
-    """Scopus API key 配置检查（只查配置，不调 API——调 API 归登录态检查）。"""
+    """Scopus API key 配置检查（只查配置，不调 API——调 API 归会话检查）。"""
     key = get_scopus_api_key()
     if not key:
         return {"ok": False, "msg": "未配置 SCOPUS_API_KEY — 编辑 .env"}
@@ -85,8 +85,8 @@ def run_all(databases: list | None = None) -> dict:
     """跑全部检查，返回统一报告 dict。
 
     databases: 任务选择的数据库列表。全部为免费源（openalex）时
-               → 免费源模式：跳过 key/浏览器/登录态检查（纯 API 不需要）。
-               None / 空 / 含付费库 → 全查（默认行为）。
+               → 免费源模式：跳过 key/浏览器/会话检查（纯 API 不需要）。
+               None / 空 / 含扩展数据库 → 全查（默认行为）。
 
     结构:
         {
@@ -109,18 +109,18 @@ def run_all(databases: list | None = None) -> dict:
     if free_only:
         checks["scopus_key"] = {"ok": True, "msg": "免费源模式，无需 SCOPUS_API_KEY"}
         checks["browser"] = {"ok": True, "msg": "免费源模式，无需浏览器（纯 API）"}
-        checks["logins"] = {"ok": True, "msg": f"免费源模式（{', '.join(sorted(dbs))}），跳过登录态检查", "detail": {}}
+        checks["logins"] = {"ok": True, "msg": f"免费源模式（{', '.join(sorted(dbs))}），跳过会话检查", "detail": {}}
     else:
         checks["scopus_key"] = check_scopus_key()
         checks["browser"] = check_browser()
 
-        # 环境类检查（缺依赖/缺 key/浏览器没启动）不通过 → 不继续查登录态
+        # 环境类检查（缺依赖/缺 key/浏览器没启动）不通过 → 不继续查会话
         env_failed = [k for k in ("deps", "scopus_key", "browser") if not checks[k]["ok"]]
 
         if env_failed:
-            checks["logins"] = {"ok": False, "msg": "环境检查未通过，跳过登录态检查", "detail": {}}
+            checks["logins"] = {"ok": False, "msg": "环境检查未通过，跳过会话检查", "detail": {}}
         else:
-            # 源相关：只查任务实际选用的付费库（dbs 里过滤掉免费源）；
+            # 源相关：只查任务实际选用的扩展数据库（dbs 里过滤掉免费源）；
             # 未指定（None/空）→ 全查 config 里 enabled 的库
             paid_dbs = [d for d in dbs if d not in FREE_DBS] or None
             login_report = check_all(databases=paid_dbs)
@@ -157,7 +157,7 @@ def run_all(databases: list | None = None) -> dict:
             summary_parts.append("浏览器✗")
         if not free_only and "logins" in checks and checks["logins"].get("detail"):
             lp = checks["logins"]
-            summary_parts.append(("登录态✓" if lp["ok"] else f"登录态✗"))
+            summary_parts.append(("会话✓" if lp["ok"] else f"会话✗"))
         summary = "全部正常" if all_ok else "；".join(summary_parts) + " — 见上方明细"
 
     return {
@@ -192,7 +192,7 @@ def print_report(report: dict) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="paperflow 统一健康检查")
-    parser.add_argument("--db", help="只检查指定数据库登录态 (ieee/scopus/ev/acm/engineering_village)")
+    parser.add_argument("--db", help="只检查指定数据库会话 (ieee/scopus/ev/acm/engineering_village)")
     parser.add_argument("--json", action="store_true", help="JSON 输出")
     args = parser.parse_args()
 

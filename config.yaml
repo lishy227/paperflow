@@ -52,7 +52,7 @@ download:
     ieee:
       download_url_pattern: https://ieeexplore.ieee.org/document/{arnumber}
       name: IEEE Xplore
-      note: 在详情页点击 PDF 下载链接（需机构订阅）
+      note: 在详情页点击 PDF 下载链接（需访问权限）
     scopus:
       download_url_pattern: https://www.scopus.com/record/display.uri?eid={eid}&origin=resultslist
       name: Scopus

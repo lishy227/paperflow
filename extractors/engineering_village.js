@@ -81,7 +81,7 @@
         // --- Open Access ---
         const isOA = !!row.querySelector('.ev-open-acess-indicator');
 
-        // ⛔ 摘要不入上下文 — 列表页不抓取 abstract。
+        // ⛔ 摘要不入上下文 — 列表页不提取 abstract。
         // EV 搜索列表页摘要不可见（需 AJAX 展开），
         // 摘要由 enrich_abstracts.py 统一在文件侧补全。
         const abstractEl = row.querySelector('.show-preview-content.in .abstract_content, .collapse.in .abstract_content');

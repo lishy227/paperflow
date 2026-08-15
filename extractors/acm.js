@@ -125,7 +125,7 @@
             if (cm) citations = cm[1].replace(/,/g, '');
         }
 
-        // ⛔ 摘要不入上下文 — 列表页不抓取 abstract。
+        // ⛔ 摘要不入上下文 — 列表页不提取 abstract。
         // 摘要由 enrich_abstracts.py 统一在文件侧补全。
         // 仅记录是否有摘要 snippet 可用。
         const absEl = item.querySelector('.issue-item__abstract');
