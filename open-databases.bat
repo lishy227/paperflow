@@ -1,10 +1,10 @@
 @echo off
 chcp 65001 >nul
-title paid-db-access - open databases
+title paperflow - open databases
 cd /d "%~dp0"
 
 echo ============================================================
-echo   paid-db-access launcher: browser + 4 databases + health
+echo   paperflow launcher: browser + 4 databases + health
 echo ============================================================
 echo.
 

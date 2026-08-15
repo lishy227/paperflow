@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-health_check.py — paid-db-access 统一健康检查（可随时调用）
+health_check.py — paperflow 统一健康检查（可随时调用）
 =========================================================
 
 检查四类：
@@ -171,7 +171,7 @@ def run_all(databases: list | None = None) -> dict:
 def print_report(report: dict) -> None:
     """人类可读输出。--db 单查模式只有 logins 段，其余段按存在性打印。"""
     checks = report["checks"]
-    print("\n=== paid-db-access 健康检查 ===")
+    print("\n=== paperflow 健康检查 ===")
     if "deps" in checks:
         print(f"  [deps]    {'✓' if checks['deps']['ok'] else '✗'} {checks['deps']['msg']}")
     if "scopus_key" in checks:
@@ -191,7 +191,7 @@ def print_report(report: dict) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="paid-db-access 统一健康检查")
+    parser = argparse.ArgumentParser(description="paperflow 统一健康检查")
     parser.add_argument("--db", help="只检查指定数据库登录态 (ieee/scopus/ev/acm/engineering_village)")
     parser.add_argument("--json", action="store_true", help="JSON 输出")
     args = parser.parse_args()

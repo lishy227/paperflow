@@ -1,5 +1,5 @@
 """
-paid-db-access 搜索脚本 — 单库串行翻页提取 v3
+paperflow 搜索脚本 — 单库串行翻页提取 v3
 新增: --ws-url 复用已有 tab, 修复 ACM 分页偏移, EV 提取可靠性
 
 用法:

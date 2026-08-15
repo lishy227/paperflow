@@ -133,7 +133,7 @@ def call_openalex(url: str, timeout: int = 15) -> dict:
     for attempt in range(MAX_RETRIES + 1):
         try:
             req = urllib.request.Request(url, headers={
-                "User-Agent": "paid-db-access/1.0 (mailto:researcher@example.com)"
+                "User-Agent": "paperflow/1.0 (mailto:researcher@example.com)"
             })
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 data = json.loads(resp.read().decode("utf-8"))

@@ -1,4 +1,4 @@
-# paid-db-access — standalone 版
+# paperflow — standalone 版
 
 通过浏览器借用机构登录态，自动搜索四个付费学术数据库
 （IEEE / Scopus / ACM / Engineering Village），去重、补摘要、评分、聚类，

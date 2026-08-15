@@ -183,7 +183,7 @@ def kill() -> None:
 
 def main():
     load_dotenv()
-    parser = argparse.ArgumentParser(description="paid-db-access 浏览器管理")
+    parser = argparse.ArgumentParser(description="paperflow 浏览器管理")
     parser.add_argument("--open", action="append", metavar="URL", help="启动后打开的页面（可重复传，一次开多个）")
     parser.add_argument("--status", action="store_true", help="只检查浏览器状态")
     parser.add_argument("--kill", action="store_true", help="关闭本脚本启动的浏览器")

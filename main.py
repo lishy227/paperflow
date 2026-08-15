@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-main.py — paid-db-access standalone 管道入口
+main.py — paperflow standalone 管道入口
 ============================================
 
 替代 AI 编排：状态机调度 + 分级报错 + 人类可读运行报告。
@@ -1000,7 +1000,7 @@ def cmd_run(run_id: str, from_stage: str, to_stage: str, yes: bool, force: bool)
         return 2
 
     print(f"══════════════════════════════════════════")
-    print(f"  paid-db-access 管道  run_id={run_id}")
+    print(f"  paperflow 管道  run_id={run_id}")
     print(f"  范围: {from_stage} → {to_stage}" + ("  (非交互)" if yes else ""))
     print(f"══════════════════════════════════════════")
 
@@ -1139,7 +1139,7 @@ def cmd_delete(run_id: str, yes: bool = False) -> int:
 
 def main():
     load_dotenv()
-    parser = argparse.ArgumentParser(description="paid-db-access standalone 管道")
+    parser = argparse.ArgumentParser(description="paperflow standalone 管道")
     sub = parser.add_subparsers(dest="command")
 
     p_init = sub.add_parser("init", help="交互式创建研究任务")

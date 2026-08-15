@@ -1,5 +1,5 @@
 """
-paid-db-access 登录态健康检查
+paperflow 登录态健康检查
 在 Stage 0 管道启动前运行，验证四个数据库的浏览器 session 是否有效。
 
 用法:
@@ -310,7 +310,7 @@ def check_all(config_path="config.yaml", databases=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="paid-db-access 登录态健康检查")
+    parser = argparse.ArgumentParser(description="paperflow 登录态健康检查")
     parser.add_argument("--db", help="只检查指定数据库 (ieee/scopus/ev/acm)")
     parser.add_argument("--json", action="store_true", help="JSON 输出")
     parser.add_argument("--config", default="config.yaml", help="配置文件路径")
@@ -332,7 +332,7 @@ def main():
     else:
         # 人类可读输出
         print("\n" + "=" * 50)
-        print("  paid-db-access 登录态健康检查")
+        print("  paperflow 登录态健康检查")
         print("=" * 50)
         for db_key, check in report["checks"].items():
             icon = "✓" if check["ok"] else "✗"

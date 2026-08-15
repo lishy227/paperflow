@@ -35,7 +35,7 @@ from utils.encoding import ensure_utf8_stdio  # noqa: E402
 
 ensure_utf8_stdio()
 
-UA = "paid-db-access/1.0 (free-source research demo)"
+UA = "paperflow/1.0 (free-source research demo)"
 TIMEOUT = 30
 
 

@@ -235,7 +235,7 @@ def print_results(results):
 
     print()
     print(bold("=" * 60))
-    print(bold("  paid-db-access · 环境就绪检查"))
+    print(bold("  paperflow · 环境就绪检查"))
     print(bold("=" * 60))
     print()
 
@@ -333,7 +333,7 @@ def print_results(results):
     browser_ok = chrome_ok or edge_ok
 
     if all_core_ok and browser_ok:
-        print(green(bold("  OK 环境就绪。可以开始使用 paid-db-access。")))
+        print(green(bold("  OK 环境就绪。可以开始使用 paperflow。")))
         print()
         print(f"  {bold('30 秒跑通：')}")
         print(f"  1. 启动浏览器: {dim('python launch_browser.py')}")
@@ -413,7 +413,7 @@ def run_fix(results):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="paid-db-access 环境就绪检查")
+    parser = argparse.ArgumentParser(description="paperflow 环境就绪检查")
     parser.add_argument("--check", action="store_true", help="检查环境并更新 config.yaml 缓存")
     parser.add_argument("--fix", action="store_true", help="自动补装缺失的依赖")
     parser.add_argument("--no-color", action="store_true", help="禁用彩色输出")

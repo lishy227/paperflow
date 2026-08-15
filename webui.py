@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-webui.py — paid-db-access 本地 Web 控制台（零依赖）
+webui.py — paperflow 本地 Web 控制台（零依赖）
 =================================================
 
 用 Python 标准库 http.server 提供 Web 界面，分步执行/回退管道。
@@ -181,7 +181,7 @@ def read_result(run_id: str, name: str) -> str | None:
 # ─────────────────────────────────────────────────────────────
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "paid-db-access-webui/1.0"
+    server_version = "paperflow-webui/1.0"
 
     # ---- 基础 ----
     def _send_download(self, content: str, filename: str, ctype: str = "text/plain; charset=utf-8"):
@@ -498,7 +498,7 @@ class Handler(BaseHTTPRequestHandler):
 # ─────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="paid-db-access Web 控制台")
+    parser = argparse.ArgumentParser(description="paperflow Web 控制台")
     parser.add_argument("--port", type=int, default=8080, help="端口（默认 8080）")
     parser.add_argument("--no-browser", action="store_true", help="启动后不自动打开浏览器")
     args = parser.parse_args()
