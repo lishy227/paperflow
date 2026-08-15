@@ -34,16 +34,16 @@ DEFAULT_BASE_URL = "https://api.deepseek.com"
 
 
 
-def load_api_config():
-    """从环境变量或 .env 加载 API 凭证（standalone 版，零 openclaw 依赖）。
-    优先级：环境变量 > .env 文件 > 默认值"""
-    from utils.env_config import load_dotenv, get_env
-    load_dotenv()
-    api_key = get_env("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY") or os.environ.get("DEEPSEEK_API_KEY")
-    base_url = get_env("LLM_BASE_URL") or os.environ.get("OPENAI_BASE_URL") or os.environ.get("DEEPSEEK_BASE_URL")
-    if api_key and base_url:
-        return api_key, base_url
-    return None, None
+def load_api_config():
+    """从环境变量或 .env 加载 API 凭证（standalone 版，零 openclaw 依赖）。
+    优先级：环境变量 > .env 文件 > 默认值"""
+    from utils.env_config import load_dotenv, get_env
+    load_dotenv()
+    api_key = get_env("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY") or os.environ.get("DEEPSEEK_API_KEY")
+    base_url = get_env("LLM_BASE_URL") or os.environ.get("OPENAI_BASE_URL") or os.environ.get("DEEPSEEK_BASE_URL")
+    if api_key and base_url:
+        return api_key, base_url
+    return None, None
 def cluster_papers(papers, topic, api_key=None, base_url=None, model=None):
 
     """Use AI to cluster papers into thematic groups."""

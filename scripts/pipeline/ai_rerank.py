@@ -160,21 +160,21 @@ Return ONLY a valid JSON object:
 
 
 
-def load_api_config():
-    """从环境变量或 .env 加载 API 凭证（standalone 版，零 openclaw 依赖）。
-
-    优先级：环境变量 > .env 文件 > 默认值
-    """
-    from utils.env_config import load_dotenv, get_env
-    load_dotenv()
-    api_key = get_env("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY") or os.environ.get("DEEPSEEK_API_KEY")
-    base_url = get_env("LLM_BASE_URL") or os.environ.get("OPENAI_BASE_URL") or os.environ.get("DEEPSEEK_BASE_URL")
-    model = get_env("AI_RERANK_MODEL") or get_env("LLM_MODEL")
-
-    if api_key and base_url:
-        return api_key, base_url, model or DEFAULT_MODEL, DEFAULT_MAX_TOKENS
-
-    return None, None, DEFAULT_MODEL, DEFAULT_MAX_TOKENS
+def load_api_config():
+    """从环境变量或 .env 加载 API 凭证（standalone 版，零 openclaw 依赖）。
+
+    优先级：环境变量 > .env 文件 > 默认值
+    """
+    from utils.env_config import load_dotenv, get_env
+    load_dotenv()
+    api_key = get_env("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY") or os.environ.get("DEEPSEEK_API_KEY")
+    base_url = get_env("LLM_BASE_URL") or os.environ.get("OPENAI_BASE_URL") or os.environ.get("DEEPSEEK_BASE_URL")
+    model = get_env("AI_RERANK_MODEL") or get_env("LLM_MODEL")
+
+    if api_key and base_url:
+        return api_key, base_url, model or DEFAULT_MODEL, DEFAULT_MAX_TOKENS
+
+    return None, None, DEFAULT_MODEL, DEFAULT_MAX_TOKENS
 def _resolve_abstract(paper: dict) -> str:
 
     """从 _abstract_file 读取摘要（结构化模板 → 提取 Abstract: 之后内容），回退到 inline。"""
